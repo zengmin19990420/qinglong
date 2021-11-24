@@ -183,14 +183,14 @@ modify_ql_port(){
         read JD_PORT
     fi
 }
-modify_Ninja_port(){
-    inp "是否修改 Ninja 端口[默认 5701]：\n1) 修改\n2) 不修改[默认]"
-    opt
-    read change_Ninja_port
-    if [ "$change_Ninja_port" = "1" ]; then
-        echo -n -e "\e[36m输入您想修改的端口->\e[0m"
-        read NINJA_PORT
-    fi
+# modify_Ninja_port(){
+#     inp "是否修改 Ninja 端口[默认 5701]：\n1) 修改\n2) 不修改[默认]"
+#     opt
+#     read change_Ninja_port
+#     if [ "$change_Ninja_port" = "1" ]; then
+#         echo -n -e "\e[36m输入您想修改的端口->\e[0m"
+#         read NINJA_PORT
+#     fi
 }
 inp "根据设备是否映射端口：\n1) 映射[默认]\n2) 不映射"
 opt
@@ -201,17 +201,17 @@ if [ "$port" = "2" ]; then
 else
     CHANGE_NETWORK=""
     MAPPING_JD_PORT="-p $JD_PORT:5700"
-    inp "是否安装 Ninja，若已存在则强制重装：\n1) 安装[默认]\n2) 不安装"
-    opt
-    read Ninja
-    if [ "$Ninja" = "2" ]; then
-        INSTALL_NINJA=false
-        modify_ql_port
-        MAPPING_NINJA_PORT=""
-    else
-        modify_ql_port
-        modify_Ninja_port
-    fi
+#     inp "是否安装 Ninja，若已存在则强制重装：\n1) 安装[默认]\n2) 不安装"
+#     opt
+#     read Ninja
+#     if [ "$Ninja" = "2" ]; then
+#         INSTALL_NINJA=false
+#         modify_ql_port
+#         MAPPING_NINJA_PORT=""
+#     else
+#         modify_ql_port
+#         modify_Ninja_port
+#     fi
 fi
 
 
@@ -253,14 +253,14 @@ if [ "$port" != "2" ]; then
     echo -e "\e[34m恭喜，端口:$JD_PORT 可用\e[0m"
     MAPPING_JD_PORT="-p $JD_PORT:5700"
 fi
-if [ "$Ninja" != "2" ]; then
-    while check_port $NINJA_PORT; do    
-        echo -n -e "\e[31m端口:$NINJA_PORT 被占用，请重新输入 Ninja 面板端口：\e[0m"
-        read NINJA_PORT
-    done
-    echo -e "\e[34m恭喜，端口:$NINJA_PORT 可用\e[0m"
-    MAPPING_NINJA_PORT="-p $NINJA_PORT:5701"
-fi
+# if [ "$Ninja" != "2" ]; then
+#     while check_port $NINJA_PORT; do    
+#         echo -n -e "\e[31m端口:$NINJA_PORT 被占用，请重新输入 Ninja 面板端口：\e[0m"
+#         read NINJA_PORT
+#     done
+#     echo -e "\e[34m恭喜，端口:$NINJA_PORT 可用\e[0m"
+#     MAPPING_NINJA_PORT="-p $NINJA_PORT:5701"
+# fi
 
 
 log "3.开始创建容器并执行"
@@ -355,11 +355,11 @@ cat $CONFIG_PATH/auth.json
 echo -e "\n"
 if [ "$access" != "2" ]; then
     if [ "$(grep -c "token" $CONFIG_PATH/auth.json)" != 0 ]; then
-        log "7.开始安装或重装 Ninja"
-        if [ "$INSTALL_NINJA" = true ]; then
-            docker exec -it $CONTAINER_NAME bash -c "cd /ql;ps -ef|grep ninja|grep -v grep|awk '{print $1}'|xargs kill -9;rm -rf /ql/ninja;git clone https://ghproxy.com/https://github.com/zengmin19990420/ninja.git /ql/ninja;cd /ql/ninja/backend;pnpm install;cp .env.example .env;cp sendNotify.js /ql/scripts/sendNotify.js;sed -i \"s/ALLOW_NUM=40/ALLOW_NUM=100/\" /ql/ninja/backend/.env;pm2 start"
-            docker exec -it $CONTAINER_NAME bash -c "sed -i \"s/ALLOW_NUM=40/ALLOW_NUM=100/\" /ql/ninja/backend/.env && cd /ql/ninja/backend && pm2 start"
-        fi
+#         log "7.开始安装或重装 Ninja"
+#         if [ "$INSTALL_NINJA" = true ]; then
+#             docker exec -it $CONTAINER_NAME bash -c "cd /ql;ps -ef|grep ninja|grep -v grep|awk '{print $1}'|xargs kill -9;rm -rf /ql/ninja;git clone https://ghproxy.com/https://github.com/zengmin19990420/ninja.git /ql/ninja;cd /ql/ninja/backend;pnpm install;cp .env.example .env;cp sendNotify.js /ql/scripts/sendNotify.js;sed -i \"s/ALLOW_NUM=40/ALLOW_NUM=100/\" /ql/ninja/backend/.env;pm2 start"
+#             docker exec -it $CONTAINER_NAME bash -c "sed -i \"s/ALLOW_NUM=40/ALLOW_NUM=100/\" /ql/ninja/backend/.env && cd /ql/ninja/backend && pm2 start"
+#         fi
         log "8.开始青龙内部配置"
         docker exec -it $CONTAINER_NAME bash -c "$(curl -fsSL https://ghproxy.com/https://github.com/zengmin19990420/VIP/blob/main/1customCDN.sh)"
     else
