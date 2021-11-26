@@ -191,7 +191,7 @@ modify_ql_port(){
 #         echo -n -e "\e[36m输入您想修改的端口->\e[0m"
 #         read NINJA_PORT
 #     fi
-}
+# }
 inp "根据设备是否映射端口：\n1) 映射[默认]\n2) 不映射"
 opt
 read port
