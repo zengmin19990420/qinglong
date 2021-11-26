@@ -102,15 +102,37 @@ JBOT_PATH=$JD_PATH/ql/jbot
 NINJA_PATH=$JD_PATH/ql/ninja
 
 # 检测镜像是否存在
-if [ ! -z "$(docker images -q $DOCKER_IMG_NAME:$TAG 2> /dev/null)" ]; then
+if [ ! -z "$(docker images -q $DOCKER_IMG_NAME 2> /dev/null)" ]; then
     HAS_IMAGE=true
-    OLD_IMAGE_ID=$(docker images -q --filter reference=$DOCKER_IMG_NAME:$TAG)
     inp "检测到先前已经存在的镜像，是否拉取最新的镜像：\n1) 拉取[默认]\n2) 不拉取"
     opt
     read update
+    #旧镜像名称
+    OLD_DOCKER_IMG_NAME=$(docker images| grep /qinglong | sed 's/docker.io\///g' | awk '{print $1}' | tail -1)
+    #旧镜像标签
+    OLD_TAG=$(docker images| grep /qinglong | sed 's/docker.io\///g' | awk '{print $2}' | tail -1)
+    #旧镜像ID
+    OLD_IMAGE_ID=$(docker images -q --filter reference=$OLD_DOCKER_IMG_NAME:$OLD_TAG)
+    
     if [ "$update" = "2" ]; then
         PULL_IMAGE=false
+        TAG=$OLD_TAG
+        DOCKER_IMG_NAME=$OLD_DOCKER_IMG_NAME
+    else
+        inp "是否指定版本：\n1) 不指定[默认]\n2) 指定"
+        opt
+        read update
+        if [ "$update" = "2" ]; then
+            inp "请输入版本号：\n$(curl -L -s https://registry.hub.docker.com/v1/repositories/whyour/qinglong/tags | json_reformat | grep -i name | awk '{print $2}' | sed 's/\"//g' | sort -u)" 
+            opt
+            read version
+            TAG=$version
+        else
+            DOCKER_IMG_NAME="whyour/qinglong"
+            TAG="2.10.6"
+        fi
     fi
+    
 fi
 
 # 检测容器是否存在
@@ -360,8 +382,43 @@ if [ "$access" != "2" ]; then
 #             docker exec -it $CONTAINER_NAME bash -c "cd /ql;ps -ef|grep ninja|grep -v grep|awk '{print $1}'|xargs kill -9;rm -rf /ql/ninja;git clone https://ghproxy.com/https://github.com/zengmin19990420/ninja.git /ql/ninja;cd /ql/ninja/backend;pnpm install;cp .env.example .env;cp sendNotify.js /ql/scripts/sendNotify.js;sed -i \"s/ALLOW_NUM=40/ALLOW_NUM=100/\" /ql/ninja/backend/.env;pm2 start"
 #             docker exec -it $CONTAINER_NAME bash -c "sed -i \"s/ALLOW_NUM=40/ALLOW_NUM=100/\" /ql/ninja/backend/.env && cd /ql/ninja/backend && pm2 start"
 #         fi
-        log "8.开始青龙内部配置"
-        docker exec -it $CONTAINER_NAME bash -c "$(curl -fsSL https://ghproxy.com/https://github.com/zengmin19990420/qinglong/blob/main/1customCDN.sh)"
+        # 检查域名连通性
+        # 检查域名连通性
+        check_url() {
+            HTTP_CODE=$(curl -o /dev/null --connect-timeout 3 -s -w "%{http_code}" $1)
+            if [ $HTTP_CODE -eq 200 ]; then
+                return 0
+            else
+                return 1
+            fi
+        }
+        
+        # 获取有效 peizhi 链接
+        get_valid_peizhi(){
+            peizhi_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/peizhi.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/peizhi.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/peizhi.sh)
+            for url in ${peizhi_list[@]}; do
+                check_url $url
+                if [ $? = 0 ]; then
+                    valid_peizhi_url=$url
+                    echo "使用链接 $url"
+                    break
+                fi
+            done
+        }
+        
+        
+        inp "是否配置文件：\n1) 配置[默认]\n2) 不配置"
+        opt
+        read peizhi
+        if [ "${peizhi}" = 2 ]; then
+            echo "已为您跳过配置文件"
+        else
+            log "8.开始青龙内部配置"
+            
+            get_valid_peizhi
+            docker exec -it $CONTAINER_NAME bash -c "$(curl -fsSL $valid_peizhi_url)"
+        fi
+        
     else
         warn "8.未检测到 token，取消内部配置"
     fi
