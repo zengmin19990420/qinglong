@@ -31,6 +31,7 @@ INSTALL_NINJA=true
 ENABLE_HANGUP=true
 ENABLE_WEB_PANEL=true
 OLD_IMAGE_ID=""
+OLD_IMAGE_NAME=""
 ENABLE_HANGUP_ENV="--env ENABLE_HANGUP=true"
 ENABLE_WEB_PANEL_ENV="--env ENABLE_WEB_PANEL=true"
 
@@ -101,6 +102,31 @@ LOG_PATH=$JD_PATH/ql/log
 JBOT_PATH=$JD_PATH/ql/jbot
 NINJA_PATH=$JD_PATH/ql/ninja
 
+
+
+check_url() {
+    HTTP_CODE=$(curl -o /dev/null --connect-timeout 10 -s -w "%{http_code}" $1)
+    if [ $HTTP_CODE -eq 200 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+        
+# 获取有效 peizhi 链接
+get_valid_peizhi(){
+    peizhi_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/peizhi.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/peizhi.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/peizhi.sh)
+    for url in ${peizhi_list[@]}; do
+        check_url $url
+        if [ $? = 0 ]; then
+            valid_peizhi_url=$url
+            echo "使用链接 $url"
+            break
+        fi
+    done
+}
+
+
 # 检测镜像是否存在
 if [ ! -z "$(docker images -q $DOCKER_IMG_NAME 2> /dev/null)" ]; then
     HAS_IMAGE=true
@@ -113,13 +139,13 @@ if [ ! -z "$(docker images -q $DOCKER_IMG_NAME 2> /dev/null)" ]; then
     OLD_TAG=$(docker images| grep /qinglong | sed 's/docker.io\///g' | awk '{print $2}' | tail -1)
     #旧镜像ID
     OLD_IMAGE_ID=$(docker images -q --filter reference=$OLD_DOCKER_IMG_NAME:$OLD_TAG)
-    
+    OLD_IMAGE_NAME="$OLD_DOCKER_IMG_NAME:$OLD_TAG"
     if [ "$update" = "2" ]; then
         PULL_IMAGE=false
         TAG=$OLD_TAG
         DOCKER_IMG_NAME=$OLD_DOCKER_IMG_NAME
     else
-        inp "是否指定版本：\n1) 不指定[默认]\n2) 指定"
+        inp "是否指定版本：(默认使用2.10.8的镜像)\n1) 不指定[默认]\n2) 指定"
         opt
         read update
         if [ "$update" = "2" ]; then
@@ -129,7 +155,7 @@ if [ ! -z "$(docker images -q $DOCKER_IMG_NAME 2> /dev/null)" ]; then
             TAG=$version
         else
             DOCKER_IMG_NAME="whyour/qinglong"
-            TAG="2.10.6"
+            TAG="2.10.8"
         fi
     fi
     
@@ -137,7 +163,7 @@ fi
 
 # 检测容器是否存在
 check_container_name() {
-    if [ ! -z "$(docker ps -a | grep $CONTAINER_NAME 2> /dev/null)" ]; then
+    if [ ! -z "$(docker ps --format "{{.Names}}" | grep $CONTAINER_NAME 2> /dev/null)" ]; then
         HAS_CONTAINER=true
         inp "检测到先前已经存在的容器，是否删除先前的容器：\n1) 删除[默认]\n2) 不删除"
         opt
@@ -253,7 +279,11 @@ fi
 if [ $HAS_IMAGE = true ] && [ $PULL_IMAGE = true ]; then
     if [ ! -z "$OLD_IMAGE_ID" ] && [ $HAS_CONTAINER = true ] && [ $DEL_CONTAINER = true ]; then
         log "2.2.删除旧的镜像"
-        docker image rm $OLD_IMAGE_ID 
+        # docker image rm $OLD_IMAGE_ID 
+        # docker rmi $OLD_IMAGE_NAME
+        
+        # 删除全部qinglogn镜像
+        docker rmi $(docker images| grep /qinglong | sed 's/docker.io\///g' | awk '{print $3}')
     fi
     log "2.3.开始拉取最新的镜像"
     docker pull $DOCKER_IMG_NAME:$TAG
@@ -384,27 +414,7 @@ if [ "$access" != "2" ]; then
 #         fi
         # 检查域名连通性
         # 检查域名连通性
-        check_url() {
-            HTTP_CODE=$(curl -o /dev/null --connect-timeout 3 -s -w "%{http_code}" $1)
-            if [ $HTTP_CODE -eq 200 ]; then
-                return 0
-            else
-                return 1
-            fi
-        }
-        
-        # 获取有效 peizhi 链接
-        get_valid_peizhi(){
-            peizhi_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/peizhi.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/peizhi.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/peizhi.sh)
-            for url in ${peizhi_list[@]}; do
-                check_url $url
-                if [ $? = 0 ]; then
-                    valid_peizhi_url=$url
-                    echo "使用链接 $url"
-                    break
-                fi
-            done
-        }
+
         
         
         inp "是否配置文件：\n1) 配置[默认]\n2) 不配置"
@@ -416,6 +426,7 @@ if [ "$access" != "2" ]; then
             log "8.开始青龙内部配置"
             
             get_valid_peizhi
+            sleep 3
             docker exec -it $CONTAINER_NAME bash -c "$(curl -fsSL $valid_peizhi_url)"
         fi
         
