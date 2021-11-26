@@ -102,7 +102,7 @@ JBOT_PATH=$JD_PATH/ql/jbot
 NINJA_PATH=$JD_PATH/ql/ninja
 
 # 检测镜像是否存在
-if [ ! -z "$(docker images -q $DOCKER_IMG_NAME:$TAG 2> /dev/null)" ]; then
+if [ ! -z "$(docker images -q $DOCKER_IMG_NAME 2> /dev/null)" ]; then
     HAS_IMAGE=true
     OLD_IMAGE_ID=$(docker images -q --filter reference=$DOCKER_IMG_NAME:$TAG)
     inp "检测到先前已经存在的镜像，是否拉取最新的镜像：\n1) 拉取[默认]\n2) 不拉取"
