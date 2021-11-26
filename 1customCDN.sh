@@ -9,7 +9,7 @@ extra_shell_path=$dir_config/extra.sh
 code_shell_path=$dir_config/code.sh
 task_before_shell_path=$dir_config/task_before.sh
 bot_json=$dir_config/bot.json
-
+jdCookie_shell_path=$dir_config/jdCookie.js
 
 # 控制是否执行变量
 read -p "是否执行全部操作，输入 1 即可执行全部，输入 0 则跳出，回车默认和其他可进行选择性操作，建议初次配置输入 1：" all
@@ -20,6 +20,8 @@ elif [ "${all}" = 0 ]; then
 else
     read -p "config.sh 操作（替换或下载选项为 y，不替换为 n，回车为替换）请输入：" Rconfig
     Rconfig=${Rconfig:-'y'}
+    read -p "jdCookie.js 操作（替换或下载选项为 y，不替换为 n，回车为替换）请输入：" jdCookie
+    jdCookie=${jdCookie:-'y'}
     read -p "extra.sh 操作（替换或下载选项为 a，修改设置区设置为 b，添加到定时任务为 c，立即执行一次为 d，全部不执行为 n，回车全部执行 | 示例：acd）请输入：" extra
     extra=${extra:-'abcd'}
     read -p "code.sh 操作（替换或下载选项为 a，修改默认调用日志设置为 b，添加到定时任务为 c，全部不执行为 n，回车全部执行 | 示例：ac）请输入：" code
@@ -77,6 +79,39 @@ else
 fi
 
 
+# 获取有效 jdCookie.js 链接
+get_valid_jdCookie(){
+    jdCookie_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/jdCookie.js https://raw.sevencdn.com/zengmin19990420/qinglong/main/config/jdCookie.js https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/config/jdCookie.js)
+    for url in ${jdCookie_list[@]}; do
+        check_url $url
+        if [ $? = 0 ]; then
+            valid_url=$url
+            echo "使用链接 $url"
+            break
+        fi
+    done
+}
+# 下载 jdCookie.js
+dl_jdCookie_shell(){
+    if [ ! -a "$jdCookie_shell_path" ]; then
+        touch $jdCookie_shell_path
+    fi
+    curl -sL --connect-timeout 3 $valid_url > $jdCookie_shell_path
+    cp $jdCookie_shell_path $dir_config/jdCookie.js
+    # 判断是否下载成功
+    jdCookie_size=$(ls -l $jdCookie_shell_path | awk '{print $5}')
+    if (( $(echo "${jdCookie_size} < 100" | bc -l) )); then
+        echo "jdCookie.js 下载失败"
+        exit 0
+    fi
+}
+if [ "${jdCookie}" = 'y' -o "${all}" = 1 ]; then
+    get_valid_jdCookie && dl_jdCookie_shell
+else
+    echo "已为您跳过替换 jdCookie.js"
+fi
+
+
 # 获取有效 extra.sh 链接
 get_valid_extra(){
     extra_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/extra.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/config/extra.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/config/extra.sh)
@@ -105,6 +140,7 @@ dl_extra_shell(){
     # 授权
     chmod 755 $extra_shell_path
 }
+
 # extra.sh 设置区设置
 set_default_extra(){   
     echo -e "一、集成仓库（Collected Repositories)\n2-JDHelloWorld\n3-he1pu\n4-shufflewzc\n6-Aaron-lv\n7-yuannian1112"
