@@ -46,7 +46,7 @@ check_url() {
 
 # 获取有效 config.sh 链接
 get_valid_config(){
-    config_list=(https://raw.githubusercontents.com/zengmin19990420/VIP/main/Conf/Qinglong/config.sample.sh https://raw.sevencdn.com/zengmin19990420/VIP/main/Conf/Qinglong/config.sample.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/VIP/main/Conf/Qinglong/config.sample.sh)
+    config_list=(https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/config/config.sample.sh https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/config.sample.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/config/config.sample.sh)
     for url in ${config_list[@]}; do
         check_url $url
         if [ $? = 0 ]; then
@@ -79,7 +79,7 @@ fi
 
 # 获取有效 extra.sh 链接
 get_valid_extra(){
-    extra_list=(https://raw.githubusercontents.com/zengmin19990420/VIP/main/Tasks/qlrepo/extra.sh https://raw.sevencdn.com/zengmin19990420/VIP/main/Tasks/qlrepo/extra.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/VIP/main/Tasks/qlrepo/extra.sh)
+    extra_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/extra.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/config/extra.sh https://ghproxy.com/https://raw.githubusercontent.com/zengmin19990420/qinglong/main/config/extra.sh)
     for url in ${extra_list[@]}; do
         check_url $url
         if [ $? = 0 ]; then
@@ -114,9 +114,6 @@ set_default_extra(){
     CollectedRepo=${CollectedRepo:-"4"}
     sed -i "s/CollectedRepo=(4)/CollectedRepo=(${CollectedRepo})/g" $extra_shell_path
     sed -i "s/OtherRepo=()/OtherRepo=(${OtherRepo})/g" $extra_shell_path
-    echo -e "Ninja\n###（1）默认启动并自动更新\n###（2）！！！未修改容器映射的请勿运行，否则会出现青龙打不开或者设备死机等不良后果，映射参考 https://github.com/MoonBegonia/ninja#%E5%AE%B9%E5%99%A8%E5%86%85"
-    read -p "Ninja="up" ## up为运行，down为不运行，请输入您的设置（默认运行） up/down：" Ninja
-    sed -i "s/Ninja=\"up\"/Ninja=\"${Ninja}\"/" $extra_shell_path
 }
 # 将 ql extra 添加到定时任务
 add_ql_extra(){
@@ -156,7 +153,7 @@ fi
 
 # 获取有效 code.sh 链接
 get_valid_code(){
-    code_list=(https://raw.githubusercontents.com/zengmin19990420/VIP/main/Scripts/sh/Helpcode2.8/code.sh https://raw.sevencdn.com/zengmin19990420/VIP/main/Scripts/sh/Helpcode2.8/code.sh https://ghproxy.com/https://raw.githubusercontents.com/zengmin19990420/VIP/main/Scripts/sh/Helpcode2.8/code.sh)
+    code_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/code.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/config/code.sh https://ghproxy.com/https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/code.sh)
     for url in ${code_list[@]}; do
         check_url $url
         if [ $? = 0 ]; then
@@ -222,7 +219,7 @@ fi
 
 # 获取有效 task_before.sh 链接
 get_valid_task_before(){
-    task_before_list=(https://raw.githubusercontents.com/zengmin19990420/VIP/main/Scripts/sh/Helpcode2.8/task_before.sh https://raw.sevencdn.com/zengmin19990420/VIP/main/Scripts/sh/Helpcode2.8/task_before.sh https://ghproxy.com/https://raw.githubusercontents.com/zengmin19990420/VIP/main/Scripts/sh/Helpcode2.8/task_before.sh)
+    task_before_list=(https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/task_before.sh https://raw.sevencdn.com/zengmin19990420/qinglong/main/config/task_before.sh https://ghproxy.com/https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/task_before.sh)
     for url in ${task_before_list[@]}; do
         check_url $url
         if [ $? = 0 ]; then
@@ -307,7 +304,7 @@ add_curl_sample(){
         echo "开始添加 task:curl config.sample.sh"
         # 获取token
         token=$(cat /ql/config/auth.json | jq --raw-output .token)
-        curl -s -H 'Accept: application/json' -H "Authorization: Bearer $token" -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept-Language: zh-CN,zh;q=0.9' --data-binary '{"name":"自动更新模板","command":"curl -L https://raw.githubusercontents.com/zengmin19990420/VIP/main/Conf/Qinglong/config.sample.sh -o /ql/sample/config.sample.sh && cp -rf /ql/sample/config.sample.sh /ql/config","schedule":"45 6,18 * * *"}' --compressed 'http://127.0.0.1:5700/api/crons?t=1627380635389'
+        curl -s -H 'Accept: application/json' -H "Authorization: Bearer $token" -H 'Content-Type: application/json;charset=UTF-8' -H 'Accept-Language: zh-CN,zh;q=0.9' --data-binary '{"name":"自动更新模板","command":"curl -L https://raw.githubusercontents.com/zengmin19990420/qinglong/main/config/config.sample.sh -o /ql/sample/config.sample.sh && cp -rf /ql/sample/config.sample.sh /ql/config","schedule":"45 6,18 * * *"}' --compressed 'http://127.0.0.1:5700/api/crons?t=1627380635389'
     fi
 }
 run_curl_sample(){
