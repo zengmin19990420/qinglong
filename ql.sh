@@ -426,7 +426,7 @@ if [ "$access" != "2" ]; then
             log "8.开始青龙内部配置"
             
             get_valid_peizhi
-            sleep 3
+            sleep 10
             docker exec -it $CONTAINER_NAME bash -c "$(curl -fsSL $valid_peizhi_url)"
         fi
         
