@@ -100,6 +100,7 @@ RAW_PATH=$JD_PATH/ql/raw
 SCRIPT_PATH=$JD_PATH/ql/scripts
 LOG_PATH=$JD_PATH/ql/log
 JBOT_PATH=$JD_PATH/ql/jbot
+DEPS_PATH=$JD_PATH/ql/deps
 NINJA_PATH=$JD_PATH/ql/ninja
 
 
@@ -265,7 +266,7 @@ fi
 
 # 配置已经创建完成，开始执行
 log "1.开始创建配置文件目录"
-PATH_LIST=($CONFIG_PATH $DB_PATH $REPO_PATH $RAW_PATH $SCRIPT_PATH $LOG_PATH $JBOT_PATH $NINJA_PATH)
+PATH_LIST=($CONFIG_PATH $DB_PATH $REPO_PATH $RAW_PATH $SCRIPT_PATH $LOG_PATH $JBOT_PATH $DEPS_PATH $NINJA_PATH)
 for i in ${PATH_LIST[@]}; do
     mkdir -p $i
 done
@@ -325,6 +326,7 @@ docker run -dit \
     -v $RAW_PATH:/ql/raw \
     -v $SCRIPT_PATH:/ql/scripts \
     -v $JBOT_PATH:/ql/jbot \
+    -v $DEPS_PATH:/ql/deps \
     -v $NINJA_PATH:/ql/ninja \
     $MAPPING_JD_PORT \
     $MAPPING_NINJA_PORT \
